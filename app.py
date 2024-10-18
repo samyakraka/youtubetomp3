@@ -9,6 +9,8 @@ def download_youtube_audio(video_url, output_audio_path="audio.webm"):
         ydl_opts = {
             'format': 'bestaudio/best',
             'outtmpl': output_audio_path,
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0',
+            'noplaylist': True,  # Avoid downloading playlists
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -16,6 +18,10 @@ def download_youtube_audio(video_url, output_audio_path="audio.webm"):
 
         print(f"Downloaded audio as: {output_audio_path}")
         return output_audio_path
+    except yt_dlp.utils.DownloadError as e:
+        print(f"Download Error: {e}")
+        st.error("Failed to download audio. YouTube may be temporarily blocking automated downloads.")
+        return None
     except Exception as e:
         print(f"An error occurred during download: {e}")
         return None
