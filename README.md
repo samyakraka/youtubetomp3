@@ -24,7 +24,7 @@ This project is a **YouTube to MP3 Converter** built using Python and Streamlit.
 
 1. **Clone the repository** (or download the source code):
     ```bash
-    git clone https://github.com/samyakraka2908/youtube-to-mp3.git
+    git clone https://github.com/samyakraka2908/youtubetomp3
     cd youtube-to-mp3
     ```
 
