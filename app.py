@@ -29,12 +29,50 @@ def download_youtube_audio(video_url, output_audio_path="audio.webm"):
 def convert_to_mp3(audio_path, output_mp3_path="audio.mp3"):
     """Convert the downloaded audio to MP3 format."""
     try:
-        audio_clip = AudioFileClip(audio_path)
-        audio_clip.write_audiofile(output_mp3_path, codec='mp3')
-        audio_clip.close()  # Close the file to release resources
-        return output_mp3_path
+        # First check if the file exists and has content
+        if not os.path.exists(audio_path) or os.path.getsize(audio_path) == 0:
+            st.error(f"The downloaded file is empty or does not exist")
+            return None
+
+        # Try with moviepy first
+        try:
+            audio_clip = AudioFileClip(audio_path)
+            audio_clip.write_audiofile(output_mp3_path, codec='mp3')
+            audio_clip.close()  # Close the file to release resources
+            print(f"Converted audio using moviepy to: {output_mp3_path}")
+            return output_mp3_path
+        except Exception as e:
+            print(f"MoviePy conversion failed: {e}")
+            # Continue to next method
+
+        # Try with pydub if available
+        try:
+            from pydub import AudioSegment
+            audio = AudioSegment.from_file(audio_path)
+            audio.export(output_mp3_path, format="mp3")
+            print(f"Converted audio using pydub to: {output_mp3_path}")
+            return output_mp3_path
+        except ImportError:
+            print("Pydub not available, moving to next method")
+        except Exception as e:
+            print(f"Error using pydub to convert audio: {e}")
+
+        # Try direct ffmpeg as last resort
+        try:
+            import subprocess
+            cmd = ["ffmpeg", "-y", "-i", audio_path, "-vn", "-ar", "44100", "-ac", "2", "-b:a", "192k", output_mp3_path]
+            subprocess.run(cmd, check=True, capture_output=True)
+            print(f"Converted audio using direct ffmpeg to: {output_mp3_path}")
+            return output_mp3_path
+        except Exception as ffmpeg_err:
+            print(f"FFMPEG direct conversion failed: {ffmpeg_err}")
+            
+        # If we got here, all methods failed
+        st.error("Could not convert the audio file. YouTube may be blocking conversion requests.")
+        return None
     except Exception as e:
         print(f"Error converting audio: {e}")
+        st.error(f"An unexpected error occurred during conversion")
         return None
 
 # Streamlit UI
